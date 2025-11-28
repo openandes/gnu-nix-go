@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "The existing tag to publish to FlakeHub"
+        description: "Flakehub Publishing"
         type: "string"
         required: true
 jobs:
@@ -24,6 +24,6 @@ jobs:
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           visibility: "public"
-          name: "openandes/gnu-nix-go"
+          name: "Open-Andes/gnu-nix-go"
           tag: "${{ inputs.tag || github.ref_name }}"
           include-output-paths: false
