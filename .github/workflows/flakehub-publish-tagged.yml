@@ -21,11 +21,9 @@ jobs:
           persist-credentials: false
           ref: "${{ (inputs.tag != null) && format('refs/tags/{0}', inputs.tag) || '' }}"
       - uses: "DeterminateSystems/determinate-nix-action@v3"
-      - name : Build Flake
-        run: nix build .
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           visibility: "public"
           name: "openandes/gnu-nix-go"
           tag: "${{ inputs.tag || github.ref_name }}"
-          include-output-paths: true
+          include-output-paths: false
