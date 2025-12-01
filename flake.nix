@@ -1,49 +1,35 @@
-{
-  description = "Pure GNU Determinate Nix Go Workbench";
+outputs = { self, nixpkgs, flake-utils }:
+    let 
+      # Define systems to support for evaluation
+      supportedSystems = [ "x86_64-linux" "aarch64-darwin" "x86_64-darwin" ];
+      
+      # Helper function to get pkgs for a system
+      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system (import nixpkgs { inherit system; }));
+      
+      # Use a dummy packages set to get access to pkgs for a target system
+      # We'll use this to define the lib.buildGo function generically.
+      pkgs_x86_64 = import nixpkgs { system = "x86_64-linux"; };
 
-  inputs = {
-    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/*.tar.gz";
-    flake-utils.url = "https://flakehub.com/f/numtide/flake-utils/*.tar.gz";
-  };
+    in {
+      # 1. lib: DEFINED AT THE TOP LEVEL (This is the critical fix)
+      # We define a single, system-agnostic 'lib' that contains the builder
+      lib = {
+        buildGo = args: pkgs_x86_64.buildGoModule (args // { });
+      };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system};
-      in {
-        devShells.default = pkgs.mkShell {
+      # 2. devShells: DEFINED VIA ITERATION (This is for the workbench)
+      devShells = forAllSystems (system: pkgs: {
+        default = pkgs.mkShell {
           buildInputs = with pkgs; [ 
-
-        # Core Golang Tool Chain
-                go 
-                gopls 
-                gotools 
-                delve 
-
-        # Doom Emacs Golang Tool Chain
-                gomodifytags
-                gotests
-                golangci-lint
-
-        # Doom Emacs Core
-                ripgrep
-                fd
-
-        # Analysis
-                hexdump 
-                coreutils 
+            go gopls gotools delve gomodifytags gotests golangci-lint 
+            ripgrep fd hexdump coreutils 
           ];
-          
-        shellHook = ''
+          shellHook = ''
             echo "$(which go)"
-            echo "$(go version)"
-            echo "$(which gopls)"
           '';
         };
-	
-	# Production
-	lib = {
-		buildGo = args: pkgs.buildGoModule (args // { });
-	};
-	
       });
-}
+      
+      # NOTE: Remove the flake-utils input if you adopt this structure completely
+      # OR, use flake-utils to define the devShells and keep the top-level lib.
+    };
