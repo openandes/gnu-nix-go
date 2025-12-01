@@ -39,5 +39,11 @@
             echo "$(which gopls)"
           '';
         };
+	
+	# Production
+	lib = {
+		buildGo = args: pkgs.buildGoModule (args // { });
+	};
+	
       });
 }
