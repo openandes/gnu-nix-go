@@ -1,3 +1,4 @@
+{
 outputs = { self, nixpkgs, flake-utils }:
     let 
       # Define systems to support for evaluation
@@ -33,3 +34,4 @@ outputs = { self, nixpkgs, flake-utils }:
       # NOTE: Remove the flake-utils input if you adopt this structure completely
       # OR, use flake-utils to define the devShells and keep the top-level lib.
     };
+}
